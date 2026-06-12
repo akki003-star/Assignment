@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 from fastapi import UploadFile
@@ -9,13 +10,20 @@ from backend.app.models.resume import Resume
 from backend.app.services.ai_service import AIService
 
 
+def _sanitize_filename(filename: str) -> str:
+    """Strip path components and dangerous characters from an upload filename."""
+    name = os.path.basename(filename)
+    name = re.sub(r"[^\w.\-]", "_", name)
+    return name or "upload"
+
+
 class ResumeService:
     def __init__(self, db: Session):
         self.db = db
         self.ai_service = AIService()
 
     async def upload_resume(self, user_id: int, file: UploadFile) -> Resume:
-        upload_dir = Path(settings.UPLOAD_DIR) / str(user_id)
+        upload_dir = Path(settings.UPLOAD_DIR).resolve() / str(user_id)
         upload_dir.mkdir(parents=True, exist_ok=True)
 
         # Get current version count
@@ -25,7 +33,13 @@ class ResumeService:
             .count()
         )
 
-        file_path = upload_dir / f"resume_v{existing_count + 1}_{file.filename}"
+        safe_name = _sanitize_filename(file.filename or "upload")
+        file_path = (upload_dir / f"resume_v{existing_count + 1}_{safe_name}").resolve()
+
+        # Ensure the resolved path is still inside the upload directory
+        if not str(file_path).startswith(str(upload_dir)):
+            raise ValueError("Invalid filename")
+
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)

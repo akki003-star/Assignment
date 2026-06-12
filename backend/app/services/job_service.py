@@ -4,6 +4,11 @@ from backend.app.models.job import Job
 from backend.app.schemas.job import JobSearch
 
 
+def _escape_like(value: str) -> str:
+    """Escape special LIKE pattern characters so they match literally."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 class JobService:
     def __init__(self, db: Session):
         self.db = db
@@ -13,13 +18,15 @@ class JobService:
 
         if search.keywords:
             for keyword in search.keywords:
+                safe = _escape_like(keyword)
                 query = query.filter(
-                    Job.title.ilike(f"%{keyword}%")
-                    | Job.description.ilike(f"%{keyword}%")
+                    Job.title.ilike(f"%{safe}%", escape="\\")
+                    | Job.description.ilike(f"%{safe}%", escape="\\")
                 )
 
         if search.location:
-            query = query.filter(Job.location.ilike(f"%{search.location}%"))
+            safe_loc = _escape_like(search.location)
+            query = query.filter(Job.location.ilike(f"%{safe_loc}%", escape="\\"))
 
         if search.salary_min:
             query = query.filter(
