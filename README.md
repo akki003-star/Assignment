@@ -1,203 +1,141 @@
-# AI Product Automation API
+# AI Job Application Agent
 
-## Project Overview
+An AI-powered web application that automatically searches for jobs, customizes resumes, applies to suitable positions, and notifies users via email when clarification is needed.
 
-This project is an AI-powered backend system that automates product classification and B2B proposal generation using artificial intelligence.
+## Features
 
-The API allows businesses to automatically generate product categories, SEO tags, sustainability filters, and business proposals using AI.
+- **Authentication** — Sign up, login, JWT-based auth, password reset, profile management
+- **Resume Management** — Upload (PDF/TXT), parsing, versioning, AI-powered optimization
+- **Job Search** — Multi-source search with keyword, location, and salary filtering
+- **AI Matching Engine** — Match score calculation, skill gap analysis, recommendations
+- **Auto Apply Engine** — Automated form filling, resume & cover letter submission
+- **Communication** — Email notifications for confirmations, updates, and clarification requests
+- **Dashboard** — Application tracking, status updates, analytics
 
-The system is built using **Python**, **FastAPI**, and **OpenAI API**.
+## Tech Stack
 
----
+| Layer      | Technology                     |
+|------------|-------------------------------|
+| Frontend   | React 18, Tailwind CSS, Vite  |
+| Backend    | Python, FastAPI               |
+| Database   | PostgreSQL                    |
+| AI         | OpenAI API                    |
+| Automation | Playwright                    |
+| Email      | Gmail API                     |
+| Cache      | Redis                         |
+| Deploy     | Docker, Docker Compose        |
 
-# Features
-
-## 1. AI Product Category Generator
-
-This module analyzes a product name and generates:
-
-* Primary category
-* Sub category
-* SEO tags
-* Sustainability filters
-
-Example Input:
-
-```json
-{
- "product_name": "bamboo toothbrush"
-}
-```
-
-Example Output:
-
-```json
-{
- "product": "bamboo toothbrush",
- "ai_output": {
-   "category": "Personal Care",
-   "sub_category": "Oral Care",
-   "tags": ["eco friendly toothbrush","bamboo toothbrush"],
-   "filters": ["plastic-free","sustainable"]
- }
-}
-```
-
----
-
-## 2. AI B2B Proposal Generator
-
-This module generates sustainable product kit proposals for companies based on a given budget.
-
-Example Input:
-
-```json
-{
- "company_type": "IT company",
- "budget": 50000
-}
-```
-
-Example Output:
-
-```json
-{
- "company_type": "IT company",
- "budget": 50000,
- "proposal": {
-   "products": ["Bamboo bottles","Recycled notebooks"],
-   "budget_breakdown": {
-     "bottle": 200,
-     "notebook": 150
-   },
-   "total_cost": "45000",
-   "impact_summary": "This proposal reduces plastic waste and promotes sustainable materials."
- }
-}
-```
-
----
-
-# System Architecture
-
-The system follows a **simple AI-powered API architecture**.
+## Project Structure
 
 ```
-Client (Browser / API Tester)
-        |
-        v
-FastAPI Backend
-        |
-        v
-AI Prompt Processing
-        |
-        v
-OpenAI API
-        |
-        v
-Structured JSON Response
+├── backend/
+│   ├── app/
+│   │   ├── api/routes/      # API endpoints
+│   │   ├── core/            # Config, security, dependencies
+│   │   ├── db/              # Database session, base
+│   │   ├── models/          # SQLAlchemy models
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── services/        # Business logic
+│   │   └── main.py          # FastAPI app
+│   ├── tests/               # Unit tests
+│   ├── alembic/             # Database migrations
+│   ├── requirements.txt
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Page components
+│   │   ├── services/        # API client
+│   │   └── context/         # React context (auth)
+│   ├── package.json
+│   └── Dockerfile
+├── docker-compose.yml
+└── README.md
 ```
 
-### Components
+## Quick Start
 
-**Client Layer**
+### Using Docker (Recommended)
 
-* Browser or API testing interface (Swagger UI)
-
-**API Layer**
-
-* FastAPI handles HTTP requests and responses
-
-**AI Processing Layer**
-
-* Prompts are sent to OpenAI models
-* AI generates structured outputs
-
-**Response Layer**
-
-* AI output is formatted as JSON and returned to the client
-
----
-
-# AI Prompt Design
-
-Prompt engineering is used to guide the AI to generate structured responses.
-
-Example prompt used for category generation:
-
-```
-Product: bamboo toothbrush
-
-Generate:
-- primary category
-- sub category
-- 5 SEO tags
-- sustainability filters
-
-Return JSON format.
+```bash
+cp .env.example .env
+# Edit .env with your API keys
+docker-compose up --build
 ```
 
-Key design considerations:
+- Backend API: http://localhost:8000/docs
+- Frontend: http://localhost:3000
 
-1. **Clear instructions** to the AI
-2. **Structured JSON output**
-3. **Domain-specific context (sustainability)**
+### Manual Setup
 
-This ensures the AI produces consistent and usable responses.
+**Backend:**
 
----
-
-# Technologies Used
-
-* Python
-* FastAPI
-* OpenAI API
-* Pydantic
-* Uvicorn
-
----
-
-# How to Run the Project
-
-1. Install dependencies
-
-```
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
+uvicorn backend.app.main:app --reload
 ```
 
-2. Start the server
+**Frontend:**
 
-```
-uvicorn main:app --reload
-```
-
-3. Open API documentation
-
-```
-http://127.0.0.1:8000/docs
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
----
+## API Endpoints
 
-# API Endpoints
+| Method | Endpoint                         | Description                |
+|--------|----------------------------------|----------------------------|
+| POST   | /api/v1/auth/register            | Create account             |
+| POST   | /api/v1/auth/login               | Login                      |
+| GET    | /api/v1/auth/me                  | Get profile                |
+| PUT    | /api/v1/auth/me                  | Update profile             |
+| POST   | /api/v1/auth/password-reset      | Request password reset     |
+| POST   | /api/v1/resumes/upload           | Upload resume              |
+| GET    | /api/v1/resumes/                 | List resumes               |
+| POST   | /api/v1/resumes/optimize         | AI-optimize resume for job |
+| POST   | /api/v1/jobs/search              | Search jobs                |
+| GET    | /api/v1/jobs/{id}                | Get job details            |
+| GET    | /api/v1/jobs/{id}/match-score    | Get AI match score         |
+| POST   | /api/v1/applications/apply       | Apply to job               |
+| GET    | /api/v1/applications/            | List applications          |
+| GET    | /api/v1/applications/dashboard   | Dashboard stats            |
+| PUT    | /api/v1/applications/{id}/status | Update application status  |
 
-| Method | Endpoint           | Description               |
-| ------ | ------------------ | ------------------------- |
-| GET    | /                  | API status                |
-| POST   | /generate-category | Generate product category |
-| POST   | /generate-proposal | Generate B2B proposal     |
+## Database Schema
 
----
+- **Users** — Authentication, profile, preferences
+- **Resumes** — File storage, versioning, parsed content
+- **Jobs** — Aggregated job listings from multiple sources
+- **Applications** — Application records with match scores
+- **Application_Statuses** — Status history tracking
+- **Email_Notifications** — Email log and status
+- **User_Responses** — Clarification Q&A
 
-# Future Improvements
+## Running Tests
 
-* Add database logging
-* Add AI response caching
-* Add WhatsApp chatbot integration
-* Add sustainability impact calculator
+```bash
+cd backend
+pip install -r requirements.txt
+pytest tests/ -v
+```
 
----
+## Security
 
-# Author
+- JWT Authentication with bcrypt password hashing
+- CORS protection
+- File upload validation and size limits
+- Rate limiting (configurable)
+- Audit logging
 
-AI Internship Assignment Project
+## Environment Variables
+
+See `.env.example` for all configuration options.
+
+## License
+
+MIT
