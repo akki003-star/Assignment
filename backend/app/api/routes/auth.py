@@ -41,10 +41,11 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 def request_password_reset(data: PasswordReset, db: Session = Depends(get_db)):
     service = AuthService(db)
     try:
-        token = service.reset_password_request(data.email)
-        return {"message": "Password reset email sent", "reset_token": token}
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        service.reset_password_request(data.email)
+    except ValueError:
+        pass
+    # Always return the same response to prevent user enumeration
+    return {"message": "If an account with that email exists, a password reset link has been sent."}
 
 
 @router.post("/password-reset/confirm")

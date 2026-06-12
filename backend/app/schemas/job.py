@@ -1,14 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class JobSearch(BaseModel):
-    keywords: list[str] = []
-    location: str | None = None
-    salary_min: float | None = None
-    salary_max: float | None = None
-    source: str | None = None
+    keywords: list[str] = Field(default=[], max_length=20)
+    location: str | None = Field(None, max_length=200)
+    salary_min: float | None = Field(None, ge=0)
+    salary_max: float | None = Field(None, ge=0)
+    source: str | None = Field(None, max_length=100)
 
 
 class JobResponse(BaseModel):
