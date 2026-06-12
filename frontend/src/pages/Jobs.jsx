@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import api from "../services/api";
+import parseCommaSeparated from "../utils/parseCommaSeparated";
 
 function Jobs() {
   const [keywords, setKeywords] = useState("");
@@ -13,10 +14,7 @@ function Jobs() {
     setLoading(true);
     try {
       const response = await api.post("/jobs/search", {
-        keywords: keywords
-          .split(",")
-          .map((k) => k.trim())
-          .filter(Boolean),
+        keywords: parseCommaSeparated(keywords),
         location: location || null,
       });
       setJobs(response.data);

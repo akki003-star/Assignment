@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import FormInput from "../components/FormInput";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import parseCommaSeparated from "../utils/parseCommaSeparated";
 
 function Profile() {
   const { user, setUser } = useAuth();
@@ -27,20 +29,11 @@ function Profile() {
         full_name: formData.full_name,
         phone: formData.phone,
         education: formData.education,
-        skills: formData.skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        skills: parseCommaSeparated(formData.skills),
         experience_years: parseInt(formData.experience_years) || 0,
-        preferred_locations: formData.preferred_locations
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        preferred_locations: parseCommaSeparated(formData.preferred_locations),
         expected_salary: parseFloat(formData.expected_salary) || null,
-        preferred_roles: formData.preferred_roles
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        preferred_roles: parseCommaSeparated(formData.preferred_roles),
       };
       const response = await api.put("/auth/me", payload);
       setUser(response.data);
@@ -73,108 +66,68 @@ function Profile() {
         )}
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
-            <input
-              name="full_name"
-              value={formData.full_name}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
+          <FormInput
+            label="Full Name"
+            name="full_name"
+            value={formData.full_name}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Phone
-            </label>
-            <input
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
+          <FormInput
+            label="Phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Education
-            </label>
-            <input
-              name="education"
-              value={formData.education}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="e.g., B.Tech Computer Science"
-            />
-          </div>
+          <FormInput
+            label="Education"
+            name="education"
+            value={formData.education}
+            onChange={handleChange}
+            placeholder="e.g., B.Tech Computer Science"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Skills (comma separated)
-            </label>
-            <input
-              name="skills"
-              value={formData.skills}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="e.g., Python, React, SQL"
-            />
-          </div>
+          <FormInput
+            label="Skills (comma separated)"
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            placeholder="e.g., Python, React, SQL"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Years of Experience
-            </label>
-            <input
-              name="experience_years"
-              type="number"
-              value={formData.experience_years}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
+          <FormInput
+            label="Years of Experience"
+            name="experience_years"
+            type="number"
+            value={formData.experience_years}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Preferred Locations (comma separated)
-            </label>
-            <input
-              name="preferred_locations"
-              value={formData.preferred_locations}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="e.g., Remote, NYC, SF"
-            />
-          </div>
+          <FormInput
+            label="Preferred Locations (comma separated)"
+            name="preferred_locations"
+            value={formData.preferred_locations}
+            onChange={handleChange}
+            placeholder="e.g., Remote, NYC, SF"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Expected Salary
-            </label>
-            <input
-              name="expected_salary"
-              type="number"
-              value={formData.expected_salary}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="e.g., 120000"
-            />
-          </div>
+          <FormInput
+            label="Expected Salary"
+            name="expected_salary"
+            type="number"
+            value={formData.expected_salary}
+            onChange={handleChange}
+            placeholder="e.g., 120000"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Preferred Job Roles (comma separated)
-            </label>
-            <input
-              name="preferred_roles"
-              value={formData.preferred_roles}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="e.g., Backend Developer, Full Stack Engineer"
-            />
-          </div>
+          <FormInput
+            label="Preferred Job Roles (comma separated)"
+            name="preferred_roles"
+            value={formData.preferred_roles}
+            onChange={handleChange}
+            placeholder="e.g., Backend Developer, Full Stack Engineer"
+          />
         </div>
 
         <button

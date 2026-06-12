@@ -1,25 +1,8 @@
-import { useEffect, useState } from "react";
-
-import api from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
+import useApiData from "../hooks/useApiData";
 
 function Applications() {
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  const fetchApplications = async () => {
-    try {
-      const response = await api.get("/applications/");
-      setApplications(response.data);
-    } catch (err) {
-      console.error("Failed to fetch applications:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: applications, loading } = useApiData("/applications/");
 
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -30,11 +13,7 @@ function Applications() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
@@ -43,7 +22,7 @@ function Applications() {
         My Applications
       </h1>
 
-      {applications.length === 0 ? (
+      {!applications || applications.length === 0 ? (
         <div className="rounded-lg bg-white py-12 text-center shadow">
           <p className="text-gray-500">No applications yet.</p>
           <a

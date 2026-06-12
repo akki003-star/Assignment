@@ -1,32 +1,11 @@
-import { useEffect, useState } from "react";
-
-import api from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
+import useApiData from "../hooks/useApiData";
 
 function Dashboard() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const response = await api.get("/applications/dashboard");
-      setStats(response.data);
-    } catch (err) {
-      console.error("Failed to fetch stats:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: stats, loading } = useApiData("/applications/dashboard");
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   const statCards = [

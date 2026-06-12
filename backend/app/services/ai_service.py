@@ -7,6 +7,18 @@ class AIService:
     def __init__(self):
         self.api_key = settings.OPENAI_API_KEY
 
+    async def _chat(self, prompt: str, temperature: float = 0.3) -> str:
+        """Send a prompt to OpenAI and return the raw content string."""
+        from openai import AsyncOpenAI
+
+        client = AsyncOpenAI(api_key=self.api_key)
+        response = await client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature,
+        )
+        return response.choices[0].message.content or ""
+
     async def calculate_match_score(
         self, user_skills: list[str], job_requirements: list[str], job_description: str
     ) -> dict:
@@ -15,9 +27,6 @@ class AIService:
             return self._fallback_match_score(user_skills, job_requirements)
 
         try:
-            from openai import AsyncOpenAI
-
-            client = AsyncOpenAI(api_key=self.api_key)
             prompt = f"""Analyze the match between a candidate and a job posting.
 
 Candidate Skills: {', '.join(user_skills)}
@@ -32,12 +41,7 @@ Return a JSON object with:
 
 Return ONLY valid JSON."""
 
-            response = await client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-            )
-            content = response.choices[0].message.content or "{}"
+            content = await self._chat(prompt, temperature=0.3)
             return json.loads(content)
         except Exception:
             return self._fallback_match_score(user_skills, job_requirements)
@@ -77,9 +81,6 @@ Return ONLY valid JSON."""
             return self._fallback_cover_letter(user_name, user_skills, job_title, company)
 
         try:
-            from openai import AsyncOpenAI
-
-            client = AsyncOpenAI(api_key=self.api_key)
             prompt = f"""Write a professional cover letter for:
 Name: {user_name}
 Skills: {', '.join(user_skills)}
@@ -88,12 +89,7 @@ Company: {company}
 
 Keep it concise (3 paragraphs) and professional."""
 
-            response = await client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-            )
-            return response.choices[0].message.content or ""
+            return await self._chat(prompt, temperature=0.7)
         except Exception:
             return self._fallback_cover_letter(user_name, user_skills, job_title, company)
 
@@ -120,9 +116,6 @@ Sincerely,
             return resume_content
 
         try:
-            from openai import AsyncOpenAI
-
-            client = AsyncOpenAI(api_key=self.api_key)
             prompt = f"""Optimize the following resume for the job posting.
 
 Resume:
@@ -134,11 +127,6 @@ Job Description: {job_description}
 Return an optimized version of the resume that highlights relevant skills and experience.
 Keep the factual content accurate but reorder and emphasize relevant points."""
 
-            response = await client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.5,
-            )
-            return response.choices[0].message.content or resume_content
+            return await self._chat(prompt, temperature=0.5) or resume_content
         except Exception:
             return resume_content
