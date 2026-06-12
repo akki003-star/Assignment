@@ -1,9 +1,11 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 import os
-import json
+
 from dotenv import load_dotenv
+from fastapi import FastAPI
 from openai import OpenAI
+from pydantic import BaseModel
+
+from utils import call_openai, parse_ai_response
 
 # Load environment variables
 load_dotenv()
@@ -72,23 +74,11 @@ def generate_category(data: ProductInput):
     """
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        result = response.choices[0].message.content
-
-        try:
-            result_json = json.loads(result)
-        except:
-            result_json = {"raw_response": result}
-
+        result = call_openai(client, prompt)
         return {
             "product": data.product_name,
-            "ai_output": result_json
+            "ai_output": parse_ai_response(result),
         }
-
     except Exception as e:
         return {"error": str(e)}
 
@@ -116,23 +106,11 @@ def generate_proposal(data: ProposalInput):
     """
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        result = response.choices[0].message.content
-
-        try:
-            result_json = json.loads(result)
-        except:
-            result_json = {"raw_response": result}
-
+        result = call_openai(client, prompt)
         return {
             "company_type": data.company_type,
             "budget": data.budget,
-            "proposal": result_json
+            "proposal": parse_ai_response(result),
         }
-
     except Exception as e:
         return {"error": str(e)}
