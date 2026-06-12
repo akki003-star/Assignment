@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -10,6 +11,9 @@ from backend.app.schemas.application import DashboardStats
 from backend.app.services.ai_service import AIService
 from backend.app.services.email_service import EmailService
 from backend.app.services.resume_service import ResumeService
+
+
+logger = logging.getLogger(__name__)
 
 
 class ApplicationService:
@@ -82,13 +86,20 @@ class ApplicationService:
         self.db.add(status_entry)
         self.db.commit()
 
-        # Send confirmation email
-        await self.email_service.send_application_confirmation(
+        # Send confirmation email (non-critical; log failure but don't block the application)
+        email_sent = await self.email_service.send_application_confirmation(
             to_email=user.email,
             user_name=user.full_name,
             job_title=job.title,
             company=job.company,
         )
+        if not email_sent:
+            logger.warning(
+                "Confirmation email failed for application %s (user=%s, job=%s)",
+                application.id,
+                user.email,
+                job.title,
+            )
 
         return application
 

@@ -65,14 +65,14 @@ AI Job Application Agent"""
     async def _send_email(self, to_email: str, subject: str, body: str) -> bool:
         """Send email via Gmail API or log if not configured."""
         if not self.sender_email:
-            logger.info(f"Email (not sent - not configured): To={to_email}, Subject={subject}")
+            logger.info("Email not sent (not configured): To=%s, Subject=%s", to_email, subject)
             return False
 
         try:
             # In production, use Gmail API with OAuth2
             # For now, log the email
-            logger.info(f"Email sent: To={to_email}, Subject={subject}")
+            logger.info("Email sent: To=%s, Subject=%s", to_email, subject)
             return True
         except Exception as e:
-            logger.error(f"Failed to send email: {e}")
+            logger.error("Failed to send email to %s: %s", to_email, e, exc_info=True)
             return False
