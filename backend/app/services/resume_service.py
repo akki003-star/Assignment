@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -7,6 +8,9 @@ from sqlalchemy.orm import Session
 from backend.app.core.config import settings
 from backend.app.models.resume import Resume
 from backend.app.services.ai_service import AIService
+
+
+logger = logging.getLogger(__name__)
 
 
 class ResumeService:
@@ -105,12 +109,17 @@ class ResumeService:
             for page in reader.pages:
                 text += page.extract_text() or ""
             return text
-        except Exception:
+        except ImportError:
+            logger.error("PyPDF2 is not installed — cannot parse PDF: %s", file_path)
+            return ""
+        except Exception as exc:
+            logger.error("Failed to parse PDF %s: %s", file_path, exc, exc_info=True)
             return ""
 
     def _parse_txt(self, file_path: Path) -> str:
         try:
             with open(file_path) as f:
                 return f.read()
-        except Exception:
+        except (OSError, UnicodeDecodeError) as exc:
+            logger.error("Failed to read text file %s: %s", file_path, exc)
             return ""

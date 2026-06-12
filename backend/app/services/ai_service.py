@@ -1,6 +1,9 @@
 import json
+import logging
 
 from backend.app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class AIService:
@@ -15,7 +18,7 @@ class AIService:
             return self._fallback_match_score(user_skills, job_requirements)
 
         try:
-            from openai import AsyncOpenAI
+            from openai import APIConnectionError, APIStatusError, AsyncOpenAI
 
             client = AsyncOpenAI(api_key=self.api_key)
             prompt = f"""Analyze the match between a candidate and a job posting.
@@ -38,8 +41,18 @@ Return ONLY valid JSON."""
                 temperature=0.3,
             )
             content = response.choices[0].message.content or "{}"
-            return json.loads(content)
-        except Exception:
+            try:
+                return json.loads(content)
+            except (json.JSONDecodeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to parse AI match-score JSON: %s — raw: %s", exc, content
+                )
+                return self._fallback_match_score(user_skills, job_requirements)
+        except (APIConnectionError, APIStatusError) as exc:
+            logger.error("OpenAI API error in calculate_match_score: %s", exc)
+            return self._fallback_match_score(user_skills, job_requirements)
+        except Exception as exc:
+            logger.error("Unexpected error in calculate_match_score: %s", exc, exc_info=True)
             return self._fallback_match_score(user_skills, job_requirements)
 
     def _fallback_match_score(
@@ -77,7 +90,7 @@ Return ONLY valid JSON."""
             return self._fallback_cover_letter(user_name, user_skills, job_title, company)
 
         try:
-            from openai import AsyncOpenAI
+            from openai import APIConnectionError, APIStatusError, AsyncOpenAI
 
             client = AsyncOpenAI(api_key=self.api_key)
             prompt = f"""Write a professional cover letter for:
@@ -94,7 +107,11 @@ Keep it concise (3 paragraphs) and professional."""
                 temperature=0.7,
             )
             return response.choices[0].message.content or ""
-        except Exception:
+        except (APIConnectionError, APIStatusError) as exc:
+            logger.error("OpenAI API error in generate_cover_letter: %s", exc)
+            return self._fallback_cover_letter(user_name, user_skills, job_title, company)
+        except Exception as exc:
+            logger.error("Unexpected error in generate_cover_letter: %s", exc, exc_info=True)
             return self._fallback_cover_letter(user_name, user_skills, job_title, company)
 
     def _fallback_cover_letter(
@@ -120,7 +137,7 @@ Sincerely,
             return resume_content
 
         try:
-            from openai import AsyncOpenAI
+            from openai import APIConnectionError, APIStatusError, AsyncOpenAI
 
             client = AsyncOpenAI(api_key=self.api_key)
             prompt = f"""Optimize the following resume for the job posting.
@@ -140,5 +157,9 @@ Keep the factual content accurate but reorder and emphasize relevant points."""
                 temperature=0.5,
             )
             return response.choices[0].message.content or resume_content
-        except Exception:
+        except (APIConnectionError, APIStatusError) as exc:
+            logger.error("OpenAI API error in optimize_resume: %s", exc)
+            return resume_content
+        except Exception as exc:
+            logger.error("Unexpected error in optimize_resume: %s", exc, exc_info=True)
             return resume_content
