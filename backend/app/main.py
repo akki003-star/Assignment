@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.routes import applications, auth, jobs, resumes
 from backend.app.core.config import settings
+from backend.app.db.base import Base
+from backend.app.db.session import engine
+
+# Create all database tables on startup
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,
