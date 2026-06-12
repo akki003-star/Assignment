@@ -11,22 +11,20 @@ from backend.app.schemas.application import (
     DashboardStats,
 )
 from backend.app.services.application_service import ApplicationService
+from backend.app.utils.route_helpers import value_error_to_http
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
 
 
 @router.post("/apply", response_model=ApplicationResponse)
+@value_error_to_http(400)
 async def apply_to_job(
     data: ApplicationCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     service = ApplicationService(db)
-    try:
-        application = await service.apply_to_job(current_user, data.job_id)
-        return application
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await service.apply_to_job(current_user, data.job_id)
 
 
 @router.get("/", response_model=list[ApplicationResponse])
@@ -48,6 +46,7 @@ def get_dashboard(
 
 
 @router.put("/{application_id}/status", response_model=ApplicationResponse)
+@value_error_to_http(404)
 def update_application_status(
     application_id: int,
     data: ApplicationStatusUpdate,
@@ -55,7 +54,4 @@ def update_application_status(
     db: Session = Depends(get_db),
 ):
     service = ApplicationService(db)
-    try:
-        return service.update_status(application_id, current_user.id, data.status, data.notes)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    return service.update_status(application_id, current_user.id, data.status, data.notes)

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import ErrorAlert from "../components/ErrorAlert";
+import FormInput from "../components/FormInput";
 import { useAuth } from "../context/AuthContext";
 
 function Login() {
@@ -31,24 +33,18 @@ function Login() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+          <ErrorAlert message={error} />
           <div className="space-y-4">
-            <input
+            <FormInput
               type="email"
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <input
+            <FormInput
               type="password"
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

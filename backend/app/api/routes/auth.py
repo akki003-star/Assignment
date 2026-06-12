@@ -14,40 +14,35 @@ from backend.app.schemas.user import (
     UserUpdate,
 )
 from backend.app.services.auth_service import AuthService
+from backend.app.utils.route_helpers import value_error_to_http
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@value_error_to_http(status.HTTP_400_BAD_REQUEST)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     service = AuthService(db)
-    try:
-        user = service.register(user_data)
-        return user
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return service.register(user_data)
 
 
 @router.post("/login", response_model=TokenResponse)
+@value_error_to_http(status.HTTP_401_UNAUTHORIZED)
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     service = AuthService(db)
-    try:
-        return service.login(login_data.email, login_data.password)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    return service.login(login_data.email, login_data.password)
 
 
 @router.post("/password-reset")
+@value_error_to_http(status.HTTP_404_NOT_FOUND)
 def request_password_reset(data: PasswordReset, db: Session = Depends(get_db)):
     service = AuthService(db)
-    try:
-        token = service.reset_password_request(data.email)
-        return {"message": "Password reset email sent", "reset_token": token}
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    token = service.reset_password_request(data.email)
+    return {"message": "Password reset email sent", "reset_token": token}
 
 
 @router.post("/password-reset/confirm")
+@value_error_to_http(status.HTTP_400_BAD_REQUEST)
 def confirm_password_reset(data: PasswordResetConfirm, db: Session = Depends(get_db)):
     payload = decode_access_token(data.token)
     if not payload or payload.get("type") != "reset":
@@ -55,11 +50,8 @@ def confirm_password_reset(data: PasswordResetConfirm, db: Session = Depends(get
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid reset token"
         )
     service = AuthService(db)
-    try:
-        service.reset_password_confirm(int(payload["sub"]), data.new_password)
-        return {"message": "Password reset successful"}
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    service.reset_password_confirm(int(payload["sub"]), data.new_password)
+    return {"message": "Password reset successful"}
 
 
 @router.get("/me", response_model=UserResponse)
